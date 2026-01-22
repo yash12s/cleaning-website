@@ -1,3 +1,4 @@
+import squareTriggerLogo from "../assets/logo.png";
 export default function Footer() {
   return (
     <footer className="bg-[#0B1320] text-gray-300 py-3">
@@ -30,9 +31,32 @@ export default function Footer() {
         </div>
       </div>
 
-      <div className="border-t border-gray-700 mt-8 pt-4 text-center text-white text-sm">
-        © 2025 Helbert Professional Cleaning. All rights reserved.
-      </div>
+      <div className="border-t border-gray-700 mt-8 pt-6 text-center text-white">
+  <div className="text-base sm:text-lg font-medium">
+    © 2026 Helbert Professional Cleaning. All rights reserved.
+  </div>
+
+  <div className="text-white mt-3 flex flex-wrap items-center justify-center gap-2 text-base sm:text-lg text-gray-300">
+    <span>Developed and maintained by</span>
+
+    <a
+      href="https://squaretrigger.com/"
+      target="_blank"
+      rel="noopener noreferrer"
+      className="inline-flex items-center gap-3 font-semibold hover:text-sky-600 transition-colors"
+    >
+      <span>Square Trigger</span>
+
+      <img
+        src={squareTriggerLogo}
+        alt="Square Trigger logo"
+        className="h-7 sm:h-10 w-auto"
+        loading="lazy"
+      />
+    </a>
+  </div>
+</div>
+
 
     </footer>
   );

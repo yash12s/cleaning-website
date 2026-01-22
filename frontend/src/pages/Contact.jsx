@@ -1,13 +1,23 @@
 import { useState } from "react";
 import { Helmet } from "react-helmet-async";
-import { FaPhoneAlt, FaEnvelope, FaClock, FaMapMarkerAlt, FaGlobe } from "react-icons/fa";
-import API from "../api"; 
+import {
+  FaPhoneAlt,
+  FaEnvelope,
+  FaClock,
+  FaMapMarkerAlt,
+  FaGlobe,
+} from "react-icons/fa";
+import api from "../api";
 
 export default function Contact() {
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [formData, setFormData] = useState({ name: "", email: "", message: "" });
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    message: "",
+  });
 
   const handleChange = (e) =>
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -16,18 +26,22 @@ export default function Contact() {
     e.preventDefault();
     setLoading(true);
     setError("");
+
     try {
-      // Backend request
-      await API.post("/contact", formData);
+      
+      await api.post("/contact", formData);
 
       setSubmitted(true);
       setFormData({ name: "", email: "", message: "" });
 
-     
+      // Reset success message after few seconds
       setTimeout(() => setSubmitted(false), 3000);
     } catch (err) {
-      setError("Something went wrong. Please try again.");
-      console.error(err);
+      console.error("❌ Error submitting contact form:", err);
+      setError(
+        err?.response?.data?.message ||
+          "Something went wrong. Please try again."
+      );
     } finally {
       setLoading(false);
     }
@@ -35,7 +49,7 @@ export default function Contact() {
 
   return (
     <div>
-      {/* SEO */}
+      {/* SEO Meta Tags */}
       <Helmet>
         <title>Contact | Helbert Professional Cleaning Services</title>
         <meta
@@ -45,13 +59,12 @@ export default function Contact() {
       </Helmet>
 
       <div className="bg-gradient-to-r from-blue-600 to-green-500 text-white py-16 text-center">
-        <h1 className="text-6xl font-extrabold">Contact Us</h1>
+        <h1 className="text-5xl md:text-6xl font-extrabold">Contact Us</h1>
       </div>
 
-      {/* Content */}
+      {/* Main Content */}
       <div className="container mx-auto px-6 py-16 bg-white">
         <section className="grid md:grid-cols-2 gap-12 items-start">
-          {/* Contact Info */}
           <div className="bg-white p-8 rounded-2xl shadow-lg space-y-6">
             <div className="flex items-center space-x-3">
               <FaPhoneAlt className="text-green-600" />
@@ -63,10 +76,16 @@ export default function Contact() {
             <div className="flex items-center space-x-3">
               <FaEnvelope className="text-blue-600" />
               <div className="flex flex-col">
-                <a href="mailto:helberrjanet.12@gmail.com" className="hover:underline">
+                <a
+                  href="mailto:helberrjanet.12@gmail.com"
+                  className="hover:underline"
+                >
                   helberrjanet.12@gmail.com
                 </a>
-                <a href="mailto:fernandezhelbert12@gmail.com" className="hover:underline">
+                <a
+                  href="mailto:fernandezhelbert12@gmail.com"
+                  className="hover:underline"
+                >
                   fernandezhelbert12@gmail.com
                 </a>
               </div>
@@ -74,7 +93,7 @@ export default function Contact() {
 
             <div className="flex items-center space-x-3">
               <FaClock className="text-purple-600" />
-              <p>Mon – Fri: 8:00am – 6:00pm</p>
+              <p>Mon - Fri: 8:00am - 6:00pm</p>
             </div>
 
             <div className="flex items-center space-x-3">
@@ -85,13 +104,13 @@ export default function Contact() {
             <div className="flex items-center space-x-3">
               <FaGlobe className="text-gray-700" />
               <p>
-                Service Areas: Vancouver, Burnaby, Richmond, North/West Van, New West,
-                Coquitlam, Delta, Surrey, Langley
+                Service Areas: Vancouver, Burnaby, Richmond, North/West Van, New
+                West, Coquitlam, Delta, Surrey, Langley
               </p>
             </div>
           </div>
 
-          {/* Contact Form */}
+          {/* ✅ Contact Form */}
           <div className="bg-white p-8 rounded-2xl shadow-lg">
             <h2 className="text-2xl font-semibold mb-4">Send Us a Message</h2>
 
@@ -145,9 +164,11 @@ export default function Contact() {
           </div>
         </section>
 
-        {/* Google Map */}
+        {/* Google Map Section */}
         <section className="mt-20">
-          <h2 className="text-3xl font-semibold mb-6 text-center">Where We Work</h2>
+          <h2 className="text-3xl font-semibold mb-6 text-center">
+            Where We Work
+          </h2>
           <div className="max-w-4xl mx-auto h-96 rounded-2xl overflow-hidden shadow-lg">
             <iframe
               title="Google Map"
