@@ -9,11 +9,14 @@ import Pricing from "./pages/Pricing";
 import Quote from "./pages/Quote";
 import Reviews from "./pages/Reviews";
 import About from "./pages/About";     
-import Contact from "./pages/Contact"; 
+import Contact from "./pages/Contact";
+import PrivacyPolicy from "./pages/PrivacyPolicy"; 
+import ScrollToTop from "./components/ScrollToTop";
 
 export default function App() {
   return (
     <HelmetProvider>
+       <ScrollToTop />
       <Navbar />
       <Routes>
         <Route path="/" element={<Home />} />
@@ -24,6 +27,8 @@ export default function App() {
         <Route path="/reviews" element={<Reviews />} />
         <Route path="/about" element={<About />} />       
         <Route path="/contact" element={<Contact />} />   
+        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+
       </Routes>
       <Footer />
     </HelmetProvider>

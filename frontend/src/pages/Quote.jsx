@@ -1,93 +1,134 @@
 import React, { useState } from "react";
 import { Helmet } from "react-helmet-async";
 import { motion } from "framer-motion";
-import api from "../api"; 
+import api from "../api";
+import { Link } from "react-router-dom";
 
 export default function Quote() {
   const [step, setStep] = useState(1);
+  const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState({});
+
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
     email: "",
-    serviceType: "",
-    // Commercial
+    commercial: 1, // 1 = Commercial, 0 = Residential Building
     company: "",
-    locations: "",
+    number_of_locations: "",
     address: "",
-    sqft: "",
-    facilityType: "",
+    approx_sq_ft: "",
+    facility_type: "",
     frequency: "",
-    accessNotes: "",
-    servicesNeeded: [],
-    // Residential
-    buildingName: "",
-    buildingType: "",
-    unitCount: "",
-    floors: "",
-    elevators: "",
-    areas: [],
-    parkadeSize: "",
-    wasteRooms: "",
-    amenities: "",
-    consumables: "",
+    access_notes: "",
+    Janitorial: 0,
+    Cleaning: 0,
+    Disinfection: 0,
+    Carpet_Cleaning: 0,
+    
   });
-  const [submitted, setSubmitted] = useState(false);
-  const [loading, setLoading] = useState(false);
+
+  const validateStep1 = () => {
+    const e = {};
+    if (!formData.name.trim()) e.name = "Name required";
+    if (!formData.phone.trim()) e.phone = "Phone required";
+    else if (!/^[\d\-\s()+]{7,20}$/.test(formData.phone)) e.phone = "Enter a valid phone";
+    if (!formData.email.trim()) e.email = "Email required";
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) e.email = "Enter a valid email";
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  };
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
+
     if (type === "checkbox") {
-      if (checked) {
-        setFormData({
-          ...formData,
-          [name]: [...(formData[name] || []), value],
-        });
-      } else {
-        setFormData({
-          ...formData,
-          [name]: formData[name].filter((v) => v !== value),
-        });
-      }
-    } else {
-      setFormData({ ...formData, [name]: value });
+      setFormData((s) => ({ ...s, [name]: checked ? 1 : 0 }));
+      return;
     }
+
+    // service type switch (commercial/residential)
+    if (name === "serviceType") {
+      const commercial = value === "Commercial" ? 1 : 0;
+      setFormData((s) => ({ ...s, commercial }));
+      return;
+    }
+
+    setFormData((s) => ({ ...s, [name]: value }));
   };
 
-  
+  const handleNext = () => {
+    if (validateStep1()) setStep(2);
+  };
+
+  const buildPayload = () => {
+    
+    const payload = {
+      name: formData.name,
+      phone: formData.phone,
+      email: formData.email,
+      commercial: Number(formData.commercial ? 1 : 0),
+      company: formData.company || "",
+      number_of_locations: formData.number_of_locations
+        ? Number(formData.number_of_locations)
+        : 0,
+      address: formData.address || "",
+      approx_sq_ft: formData.approx_sq_ft ? Number(formData.approx_sq_ft) : 0,
+      facility_type: formData.facility_type || "",
+      frequency: formData.frequency || "",
+      access_notes: formData.access_notes || "",
+      Janitorial: Number(formData.Janitorial ? 1 : 0),
+      Cleaning: Number(formData.Cleaning ? 1 : 0),
+      Disinfection: Number(formData.Disinfection ? 1 : 0),
+      Carpet_Cleaning: Number(formData.Carpet_Cleaning ? 1 : 0),
+    };
+    return payload;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setErrors({});
+
+    if (!formData.name || !formData.email || !formData.phone) {
+      setErrors({ submit: "Please complete required fields" });
+      setLoading(false);
+      return;
+    }
+
+    const payload = buildPayload();
 
     try {
-      await api.post("/quote", formData); // backend route
+      
+      await api.post("/quote", payload);
       setSubmitted(true);
+      
       setFormData({
         name: "",
         phone: "",
         email: "",
-        serviceType: "",
+        commercial: 1,
         company: "",
-        locations: "",
+        number_of_locations: "",
         address: "",
-        sqft: "",
-        facilityType: "",
+        approx_sq_ft: "",
+        facility_type: "",
         frequency: "",
-        accessNotes: "",
-        servicesNeeded: [],
-        buildingName: "",
-        buildingType: "",
-        unitCount: "",
-        floors: "",
-        elevators: "",
-        areas: [],
-        parkadeSize: "",
-        wasteRooms: "",
-        amenities: "",
-        consumables: "",
+        access_notes: "",
+        Janitorial: 0,
+        Cleaning: 0,
+        Disinfection: 0,
+        Carpet_Cleaning: 0,
       });
-    } catch (error) {
-      console.error("Error submitting quote:", error);
-      alert("❌ Something went wrong. Please try again.");
+      setStep(1);
+    } catch (err) {
+      console.error("Error submitting quote:", err);
+      // show message from backend if present
+      const msg =
+        err?.response?.data?.message || "Something went wrong. Please try again.";
+      setErrors({ submit: msg });
+      alert(`❌ ${msg}`);
     } finally {
       setLoading(false);
     }
@@ -130,6 +171,8 @@ export default function Quote() {
                     className="w-full p-3 border rounded-lg"
                     required
                   />
+                  {errors.name && <div className="text-red-500 text-sm">{errors.name}</div>}
+
                   <input
                     type="tel"
                     name="phone"
@@ -139,6 +182,8 @@ export default function Quote() {
                     className="w-full p-3 border rounded-lg"
                     required
                   />
+                  {errors.phone && <div className="text-red-500 text-sm">{errors.phone}</div>}
+
                   <input
                     type="email"
                     name="email"
@@ -148,21 +193,34 @@ export default function Quote() {
                     className="w-full p-3 border rounded-lg"
                     required
                   />
-                  <select
-                    name="serviceType"
-                    value={formData.serviceType}
-                    onChange={handleChange}
-                    className="w-full p-3 border rounded-lg"
-                    required
-                  >
-                    <option value="">Select Service Type</option>
-                    <option value="Commercial">Commercial</option>
-                    <option value="Residential">Residential Building</option>
-                  </select>
+                  {errors.email && <div className="text-red-500 text-sm">{errors.email}</div>}
+
+                  <div>
+                    <label className="mr-4">
+                      <input
+                        type="radio"
+                        name="serviceType"
+                        value="Commercial"
+                        checked={formData.commercial === 1}
+                        onChange={handleChange}
+                      />{" "}
+                      Commercial
+                    </label>
+                    <label>
+                      <input
+                        type="radio"
+                        name="serviceType"
+                        value="Residential"
+                        checked={formData.commercial === 0}
+                        onChange={handleChange}
+                      />{" "}
+                      Residential Building
+                    </label>
+                  </div>
 
                   <button
                     type="button"
-                    onClick={() => setStep(2)}
+                    onClick={handleNext}
                     className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition cursor-pointer"
                   >
                     Next
@@ -170,83 +228,85 @@ export default function Quote() {
                 </div>
               )}
 
-              {/* Step 2 Commercial */}
-              {step === 2 && formData.serviceType === "Commercial" && (
+              {/* Step 2 - Commercial fields */}
+              {step === 2 && formData.commercial === 1 && (
                 <div className="space-y-4">
                   <input
-                    type="text"
                     name="company"
                     placeholder="Company"
                     value={formData.company}
                     onChange={handleChange}
                     className="w-full p-3 border rounded-lg"
                   />
+
                   <input
+                    name="number_of_locations"
                     type="number"
-                    name="locations"
                     placeholder="Number of Locations"
-                    value={formData.locations}
+                    value={formData.number_of_locations}
                     onChange={handleChange}
                     className="w-full p-3 border rounded-lg"
                   />
+
                   <input
-                    type="text"
                     name="address"
                     placeholder="Address"
                     value={formData.address}
                     onChange={handleChange}
                     className="w-full p-3 border rounded-lg"
                   />
+
                   <input
-                    type="text"
-                    name="sqft"
+                    name="approx_sq_ft"
                     placeholder="Approx. Sq. Ft."
-                    value={formData.sqft}
+                    value={formData.approx_sq_ft}
                     onChange={handleChange}
                     className="w-full p-3 border rounded-lg"
                   />
+
                   <input
-                    type="text"
-                    name="facilityType"
+                    name="facility_type"
                     placeholder="Facility Type"
-                    value={formData.facilityType}
+                    value={formData.facility_type}
                     onChange={handleChange}
                     className="w-full p-3 border rounded-lg"
                   />
+
                   <input
-                    type="text"
                     name="frequency"
-                    placeholder="Frequency"
+                    placeholder="Frequency (e.g. Weekly)"
                     value={formData.frequency}
                     onChange={handleChange}
                     className="w-full p-3 border rounded-lg"
                   />
+
                   <textarea
-                    name="accessNotes"
+                    name="access_notes"
                     placeholder="Access Notes"
-                    value={formData.accessNotes}
+                    value={formData.access_notes}
                     onChange={handleChange}
                     className="w-full p-3 border rounded-lg"
-                  ></textarea>
+                  />
 
                   <fieldset>
-                    <legend className="font-semibold mb-2">
-                      Services Needed
-                    </legend>
+                    <legend className="font-semibold mb-2">Services Needed</legend>
                     <div className="grid grid-cols-2 gap-2">
-                      {["Janitorial", "Deep Cleaning", "Disinfection", "Carpet Cleaning"].map(
-                        (service) => (
-                          <label key={service} className="flex items-center space-x-2">
-                            <input
-                              type="checkbox"
-                              name="servicesNeeded"
-                              value={service}
-                              onChange={handleChange}
-                            />
-                            <span>{service}</span>
-                          </label>
-                        )
-                      )}
+                      {[
+                        { key: "Janitorial", label: "Janitorial" },
+                        { key: "Cleaning", label: "Cleaning" },
+                        { key: "Disinfection", label: "Disinfection" },
+                        { key: "Carpet_Cleaning", label: "Carpet Cleaning" },
+                      ].map((s) => (
+                        <label key={s.key} className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            name={s.key}
+                            checked={formData[s.key] === 1}
+                            onChange={handleChange}
+                          />
+                          <span>{s.label}</span>
+                        </label>
+                      ))}
                     </div>
                   </fieldset>
 
@@ -269,11 +329,10 @@ export default function Quote() {
                 </div>
               )}
 
-              {/* Step 2 Residential */}
-              {step === 2 && formData.serviceType === "Residential" && (
+              {/* Step 2 - Residential (if needed) */}
+              {step === 2 && formData.commercial === 0 && (
                 <div className="space-y-4">
-                 
-                 
+                
                   <div className="flex justify-between">
                     <button
                       type="button"
@@ -292,26 +351,25 @@ export default function Quote() {
                   </div>
                 </div>
               )}
+
+              {errors.submit && <div className="text-red-500">{errors.submit}</div>}
             </form>
           ) : (
             <div className="text-center space-y-4">
               <h2 className="text-2xl font-bold text-green-600">✅ Thank you!</h2>
               <p className="text-gray-600">
-                Your request has been received. We’ll review your details and reply within 1 business day. 
+                Your request has been received. We’ll review your details and reply within 1 business day.
                 A confirmation email has also been sent to you.
               </p>
             </div>
           )}
 
-          {/* Footer */}
           <div className="mt-10 border-t pt-6 text-sm text-gray-500">
             <p className="text-center">
-              <strong className="font-bold text-gray-700">
-                By submitting, you agree to our{" "}
-              </strong>
-              <a href="/privacy" className="text-blue-600 underline font-semibold">
+              <strong className="font-bold text-gray-700">By submitting, you agree to our{" "}</strong>
+              <Link to="/privacy-policy" className="text-blue-600 underline font-semibold">
                 Privacy Policy
-              </a>
+              </Link>
               .
             </p>
           </div>
